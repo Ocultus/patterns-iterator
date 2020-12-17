@@ -64,19 +64,25 @@ template<typename T>
 void LinkedList<T>::deleteElem(T elem) {
     PNode tempHead = head;
     if(tempHead -> data == elem){
-        head = head ->next;
+        head = head -> next;
         delete tempHead;
     }
-    bool notFound = true;
-    while(tempHead -> next != nullptr && notFound){
-        PNode temp = tempHead;
-        tempHead = tempHead -> next;
-        if(tempHead -> data == elem){
-            temp -> next  = tempHead ->next;
-            delete tempHead;
-            notFound = false;
+    else{
+        bool notFound = true;
+        while(tempHead -> next != nullptr && notFound){
+            PNode temp = tempHead;
+            tempHead = tempHead -> next;
+            if(tempHead -> data == elem){
+                temp -> next  = tempHead ->next;
+                delete tempHead;
+                notFound = false;
+            }
+        }
+        if(notFound){
+            throw LinkedListException("Hash table don`t have this elem");
         }
     }
+
 }
 
 template<typename T>
@@ -105,7 +111,6 @@ LinkedList<T>::~LinkedList() {
 
 template<typename T>
 LinkedList<T>::LinkedList(const LinkedList<T> &obj):head(new Node) {
-    head = new Node;
     head->data = obj.head->data;
     if(obj.head->next != nullptr){
         PNode it = head;
@@ -131,7 +136,7 @@ LinkedList<T>::LinkedList(LinkedList<T> &&obj) noexcept:head(obj.head){
 
 template<typename T>
 LinkedList<T> &LinkedList<T>::operator=(const LinkedList<T>& obj) {
-    if(this != obj){
+    if(this != &obj){
         delete head;
         head = new Node;
         head->data = obj.head->data;
@@ -156,7 +161,7 @@ LinkedList<T> &LinkedList<T>::operator=(const LinkedList<T>& obj) {
 
 template<typename T>
 LinkedList<T> &LinkedList<T>::operator=(LinkedList<T>&& obj) noexcept {
-    if(*this != obj){
+    if(this != &obj){
         std::cout << 1;
         delete head;
         head = obj.head;

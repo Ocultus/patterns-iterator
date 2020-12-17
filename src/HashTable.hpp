@@ -8,24 +8,22 @@ using namespace std;
 template <typename Value, class Hash = hash<Value>>
 class HashTable {
     public:
-        using _pair = pair<Value,size_t>;
-        using _bucket = LinkedList<_pair>;
+        using _bucket = LinkedList<Value>;
         HashTable();
-        explicit HashTable(unsigned size);
         void add(Value elem);
         void deleteElem(Value elem);
         bool hasElem(Value elem);
         void clear();
         bool empty();
-        HashTable(const HashTable<Value, Hash>&);
+        HashTable(HashTable<Value, Hash>&);
         HashTable(HashTable<Value, Hash>&&) noexcept ;
-        HashTable& operator= (const HashTable<Value, Hash>&);
-        HashTable& operator= (HashTable<Value,Hash>&&) noexcept ;
+        HashTable& operator=(const HashTable<Value, Hash>&);
+        HashTable& operator =(HashTable<Value,Hash>&&) noexcept ;
         ~HashTable();
         class tableIterator: public std::iterator<std::input_iterator_tag, Value>{
             private:
                 unsigned writeIndex;
-                typename LinkedList<_pair>::listIterator current;
+                typename LinkedList<Value>::listIterator current;
                 HashTable<Value> *_hashTable;
             public:
                 tableIterator();
@@ -102,7 +100,7 @@ bool HashTable<Value, Hash>::tableIterator::operator!=(const HashTable::tableIte
 
 template<typename Value, class Hash>
 Value HashTable<Value, Hash>::tableIterator::operator*() const {
-    return (*current).first;
+    return (*current);
 }
 
 template<typename Value, class Hash>
@@ -126,19 +124,16 @@ template<typename Value, class Hash>
 HashTable<Value, Hash>::tableIterator::tableIterator(): _hashTable(nullptr),writeIndex{}{}
 
 template<typename Value, class Hash>
-HashTable<Value, Hash>::HashTable(unsigned _size): arr(new _bucket[_size]), realElem(0), size(_size) {}
-
-template<typename Value, class Hash>
 void HashTable<Value, Hash>::add(Value elem) {
     size_t hashElem = hashFunc(elem);
-    arr[hashElem % size].add(_pair(elem, hashElem));
+    arr[hashElem % size].add(elem);
     realElem++;
     float capacity = 100. * realElem / size;
     if(capacity > 69){
         _bucket *rehashTable = new _bucket[size * 2];
         for(Value temp:*this){
             hashElem = hashFunc(temp);
-            rehashTable[hashElem % (size*2)].add(_pair(temp, hashElem));
+            rehashTable[hashElem % (size*2)].add(temp);
         }
         size = size * 2;
         _bucket *old = arr;
@@ -160,8 +155,8 @@ bool HashTable<Value, Hash>::hasElem(Value elem) {
         return false;
     }
     else{
-        for(_pair temp: arr[elemHash % size]){
-            if(elem == temp.first){
+        for(Value temp: arr[elemHash % size]){
+            if(elem == temp){
                 return true;
             }
         }
@@ -173,10 +168,10 @@ template<typename Value, class Hash>
 void HashTable<Value, Hash>::deleteElem(Value elem) {
     size_t hashElem = hashFunc(elem);
     if(arr[hashElem % size].empty()){
-        throw LinkedListException("");
+        throw LinkedListException("Hash table don`t have this elem");
     }
     else{
-        arr[hashElem % size].deleteElem(_pair(elem, hashElem));
+        arr[hashElem % size].deleteElem(elem);
         realElem--;
     }
 }
@@ -200,10 +195,13 @@ template<typename Value, class Hash>
 HashTable<Value, Hash>::HashTable() : arr(new _bucket[10]), realElem(0), size(10){}
 
 template<typename Value, class Hash>
-HashTable<Value, Hash>::HashTable(const HashTable<Value, Hash>& other):realElem(other.realElem), size(other.size),
+HashTable<Value, Hash>::HashTable(HashTable<Value, Hash>& other):realElem(other.realElem), size(other.size),
 arr(new _bucket[other.size]){
     for(unsigned i = 0; i < size; i++){
-        arr[i] = other[i];
+        if(!other.arr[i].empty()){
+            arr[i] = other.arr[i];
+        }
+
     }
 }
 
